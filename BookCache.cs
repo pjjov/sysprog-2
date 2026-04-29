@@ -22,7 +22,7 @@ class BookCache
 
         try
         {
-            result = responses[query];
+            responses.TryGetValue(query, out result);
         }
         finally
         {

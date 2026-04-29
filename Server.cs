@@ -1,4 +1,5 @@
 using System.Net;
+using Newtonsoft.Json.Linq;
 
 namespace SysProg;
 
@@ -8,8 +9,6 @@ class Server {
     public Server(string prefix) {
         if (!HttpListener.IsSupported)
             throw new Exception("HttpListener nije podrzan!");
-
-        string[] prefixes = ["http://localhost:8080/"];
 
         listener = new HttpListener();
         listener.Prefixes.Add(prefix);
@@ -29,6 +28,11 @@ class Server {
         System.IO.Stream output = response.OutputStream;
         output.Write(buffer, 0, buffer.Length);
         output.Close();
+    }
+
+    public void Send(HttpListenerContext context, JObject result)
+    {
+        Send(context, result.ToString());
     }
 
     public void Close() {
