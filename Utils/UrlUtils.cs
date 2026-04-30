@@ -42,18 +42,18 @@ public class UrlUtils {
         {
             var values = query.GetValues(key);
 
-            foreach (var value in values)
+            foreach (var value in values!)
             {
                 if (sb.Length > 0)
                     sb.Append("&");
 
-                sb.Append(Uri.EscapeDataString(key));
+                sb.Append(Uri.EscapeDataString(key!));
                 sb.Append("=");
                 sb.Append(Uri.EscapeDataString(value));
             }
         }
 
-        var baseUrl = request.Url.GetLeftPart(UriPartial.Path);
+        var baseUrl = request.Url!.GetLeftPart(UriPartial.Path);
 
         return sb.Length > 0
             ? $"{baseUrl}?{sb}"
