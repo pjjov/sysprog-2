@@ -19,7 +19,7 @@ Thread thread = new Thread(() => {
     try {
         while (server.listener.IsListening) {
             var context = server.Accept();
-            server.Handle(context, service);
+            server.Execute(context, service);
         }
     }
     catch (HttpListenerException) { /* Expected on Stop() */ }
