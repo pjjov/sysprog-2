@@ -38,13 +38,13 @@ class ApiService {
         UrlUtils.AppendFilter(ref sb, "inauthor", query.Get("author"));
         UrlUtils.AppendFilter(ref sb, "inpublisher", query.Get("publisher"));
         UrlUtils.AppendFilter(ref sb, "subject", query.Get("subject"));
-        UrlUtils.AppendFilter(ref sb, "isbn", query.Get("isbn"));
 
         var result = Fetch(sb.ToString());
-
-        // obrada rezultata
-
-        return result;
+        JArray books = VolumeUtils.ParseVolume(result);
+        
+        return new JObject {
+            ["books"] = books,
+        };
     }
 
     public JObject Query(HttpListenerRequest req) {
