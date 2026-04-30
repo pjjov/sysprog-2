@@ -15,11 +15,18 @@ class ApiService {
         this.client = new HttpClient();
         this.cache = new BookCache(cacheSize);
     }
+    private string buildUrl(string baseUrl, string url)
+    {
+        // return baseUrl + url + "&key=" + apiKey;
+        // ako ima ? u sredinu dodaje &, ali ako nema ? onda dodaje ?, ako ima na kraju onda ne dodaje nista, dodaje se na kraju pre kljuca
+        string separator = url.Contains("?") ? "&" : "?";
+        url += $"{separator}key={apiKey}";
+        return baseUrl + url;
+    }
 
     public JObject Fetch(string url)
     {   
-        // Doraditi generisanje krajnjeg urla.
-        HttpResponseMessage response = client.GetAsync(baseUrl + url + "&key=" + apiKey).Result;
+        HttpResponseMessage response = client.GetAsync(buildUrl(baseUrl, url)).Result;
         response.EnsureSuccessStatusCode();
         string responseBody = response.Content.ReadAsStringAsync().Result;
         return JObject.Parse(responseBody);
