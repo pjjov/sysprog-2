@@ -1,4 +1,5 @@
 using System.Net;
+using System.Text;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
@@ -15,6 +16,7 @@ class ApiService {
         this.client = new HttpClient();
         this.cache = new BookCache(cacheSize);
     }
+
     private string buildUrl(string baseUrl, string url)
     {
         // return baseUrl + url + "&key=" + apiKey;
@@ -32,13 +34,40 @@ class ApiService {
         return JObject.Parse(responseBody);
     }
     
-    private string NormalizeUrl(string url)
+    private string NormalizeUrl(HttpListenerRequest request)
     {
-        return url;
+        var query = request.QueryString;
+
+        var sortedKeys = query.AllKeys
+            .Where(k => k != null)
+            .OrderBy(k => k, StringComparer.Ordinal);
+
+        var sb = new StringBuilder();
+
+        foreach (var key in sortedKeys)
+        {
+            var values = query.GetValues(key);
+
+            foreach (var value in values)
+            {
+                if (sb.Length > 0)
+                    sb.Append("&");
+
+                sb.Append(Uri.EscapeDataString(key));
+                sb.Append("=");
+                sb.Append(Uri.EscapeDataString(value));
+            }
+        }
+
+        var baseUrl = request.Url.GetLeftPart(UriPartial.Path);
+
+        return sb.Length > 0
+            ? $"{baseUrl}?{sb}"
+            : baseUrl;
     }
 
-    public JObject Handle(HttpListenerRequest req) {
-        string url = NormalizeUrl(req.Url!.ToString());
+    public JObject Query(HttpListenerRequest req) {
+        string url = NormalizeUrl(req);
         JObject? result = cache.Find(url);
         if (result != null)
             return result;

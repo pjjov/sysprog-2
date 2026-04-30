@@ -19,6 +19,21 @@ class Server {
         return listener.GetContext();
     }
 
+    public void Handle(HttpListenerContext context, ApiService service) {
+        ThreadPool.QueueUserWorkItem(state => {
+            try {
+                var result = service.Query(context.Request);
+                Send(context, result);
+            }
+            catch (Exception e) {
+                Console.WriteLine($"Greska prilikom rada sa ThreadPool-om: {e.Message}");
+            }
+            finally {
+                context.Response.Close();
+            }
+        });
+    }
+
     public void Send(HttpListenerContext context, string body) {
         HttpListenerResponse response = context.Response;
 
