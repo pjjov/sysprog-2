@@ -32,6 +32,10 @@ Thread thread = new Thread(() => {
 
 thread.Start();
 
+ApiTester tester = new ApiTester("./test.csv");
+tester.TestMany(1000);
+tester.Close();
+
 Console.ReadLine();
 
 server.Close();
