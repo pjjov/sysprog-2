@@ -1,4 +1,5 @@
 using System.Net;
+using System.Text;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using SysProg.Utils;
@@ -25,13 +26,34 @@ class ApiService {
         return JObject.Parse(responseBody);
     }
 
+    private JObject Handle(HttpListenerRequest req) {
+        var query = req.QueryString;
+
+        if (query.Count == 0)
+            return Fetch("/volumes");
+
+        var sb = new StringBuilder("/volumes?q=");
+
+        UrlUtils.AppendFilter(ref sb, null, query.Get("search"));
+        UrlUtils.AppendFilter(ref sb, "inauthor", query.Get("author"));
+        UrlUtils.AppendFilter(ref sb, "inpublisher", query.Get("publisher"));
+        UrlUtils.AppendFilter(ref sb, "subject", query.Get("subject"));
+        UrlUtils.AppendFilter(ref sb, "isbn", query.Get("isbn"));
+
+        var result = Fetch(sb.ToString());
+
+        // obrada rezultata
+
+        return result;
+    }
+
     public JObject Query(HttpListenerRequest req) {
         string url = UrlUtils.NormalizeUrl(req);
         JObject? result = cache.Find(url);
         if (result != null)
             return result;
 
-        result = Fetch("/volumes?q=inauthor:tolkien");
+        result = Handle(req);
 
         cache.Insert(url, result);
         return result;

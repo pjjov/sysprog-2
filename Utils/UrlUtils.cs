@@ -4,6 +4,20 @@ using System.Text;
 namespace SysProg.Utils;
 
 public class UrlUtils {
+    public static void AppendFilter(ref StringBuilder sb, string? key, string? value)
+    {
+        if (value != null)
+        {
+            if (key != null)
+            {
+                sb.Append('+');
+                sb.Append(key);
+                sb.Append(':');
+            }
+            sb.Append(value);
+        }
+    }
+
     public static string BuildUrl(string baseUrl, string path, string key)
     {
         // return base + path + "&key=" + key;
