@@ -42,7 +42,7 @@ class Server {
                 Console.WriteLine($"Greska prilikom rada sa ThreadPool-om: {e.Message}");
             }
             finally {
-                context.Response.StatusCode = 500;
+                // context.Response.StatusCode = 500;
                 context.Response.Close();
             }
         });

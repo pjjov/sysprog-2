@@ -42,6 +42,9 @@ class ApiService {
         var result = Fetch(sb.ToString());
         JArray books = VolumeUtils.ParseVolume(result);
         
+        if (books.Count == 0)
+            throw new Exception("Nije pronadjena nijedna knjiga sa datim filterima!");
+
         return new JObject {
             ["books"] = books,
         };
