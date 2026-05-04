@@ -35,3 +35,5 @@ thread.Start();
 Console.ReadLine();
 
 server.Close();
+
+service.SaveCache();

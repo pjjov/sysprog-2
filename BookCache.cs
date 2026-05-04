@@ -15,6 +15,16 @@ class BookCache
         this.rwLock = new ReaderWriterLockSlim();
     }
 
+    public List<JObject> CachedData()
+    {
+        return responses.Values.ToList();
+    }
+
+    public List<string> CachedQueries()
+    {
+        return responses.Keys.ToList();
+    }
+
     public JObject? Find(string query)
     {
         JObject? result = null;

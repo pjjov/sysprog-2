@@ -58,4 +58,18 @@ class ApiService {
         cache.Insert(url, result);
         return result;
     }
+
+    public void SaveCache()
+    {
+        string projectRoot = Path.GetFullPath(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "..", "..", ".."));
+        string folderPath = Path.Combine(projectRoot, "files");
+        Directory.CreateDirectory(folderPath);
+
+        List<JObject> data = cache.CachedData();
+        List<string> queries = cache.CachedQueries();
+        if(data != null)
+        {
+            FileUtil.WriteResults(folderPath, data, queries);
+        }
+    }
 }
