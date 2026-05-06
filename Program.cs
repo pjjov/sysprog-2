@@ -32,7 +32,7 @@ Thread thread = new Thread(() => {
 
 thread.Start();
 
-ApiTester tester = new ApiTester("./test.csv");
+ApiTester tester = new ApiTester("./files/test.csv");
 tester.TestMany(1000);
 tester.Close();
 

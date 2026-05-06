@@ -64,15 +64,13 @@ class ApiService {
 
     public void SaveCache()
     {
+        var stats = cache.Statistics();
+        var percentage = (float)stats.hits / (float)(stats.hits + stats.misses) * 100.0;
+        Console.WriteLine($"Cache hits/misses (%missed): {stats.hits}/{stats.misses} ({percentage}%)");
+
         string projectRoot = Path.GetFullPath(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "..", "..", ".."));
         string folderPath = Path.Combine(projectRoot, "files");
         Directory.CreateDirectory(folderPath);
-
-        List<JObject> data = cache.CachedData();
-        List<string> queries = cache.CachedQueries();
-        if(data != null)
-        {
-            FileUtil.WriteResults(folderPath, data, queries);
-        }
+        FileUtil.WriteResults(folderPath, cache.Snapshot());
     }
 }

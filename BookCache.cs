@@ -8,21 +8,25 @@ class BookCache
     private ReaderWriterLockSlim rwLock;
     private Dictionary<string, JObject> responses;
     private int max;
+    private long hits;
+    private long misses;
     public BookCache(int max)
     {
         this.max = max;
         this.responses = new Dictionary<string, JObject>();
         this.rwLock = new ReaderWriterLockSlim();
+        hits = 0;
+        misses = 0;
     }
 
-    public List<JObject> CachedData()
+    public List<KeyValuePair<string, JObject>> Snapshot()
     {
-        return responses.Values.ToList();
+        return responses.ToList();
     }
 
-    public List<string> CachedQueries()
+    public (long hits, long misses) Statistics()
     {
-        return responses.Keys.ToList();
+        return (Interlocked.Read(ref hits), Interlocked.Read(ref misses));
     }
 
     public JObject? Find(string query)
@@ -32,7 +36,10 @@ class BookCache
 
         try
         {
-            responses.TryGetValue(query, out result);
+            if (responses.TryGetValue(query, out result))
+                hits++;
+            else
+                misses++;
         }
         finally
         {

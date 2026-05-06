@@ -28,10 +28,10 @@ public class UrlUtils {
         return baseUrl + path;
     }
 
-    public static string GetUrlQuery(string url)
+    public static string QuerySummary(string url)
     {
         var uri = new Uri(url);
-        string result = uri.Query.TrimStart('?').Replace("&", "\n").Replace("=", ": ");
+        string result = uri.Query.TrimStart('?').Replace("&", "\n\t").Replace("=", ": ");
         return result;
     }
     public static string NormalizeUrl(HttpListenerRequest request)
