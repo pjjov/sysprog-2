@@ -56,10 +56,18 @@ class ApiService {
         if (result != null)
             return result;
 
-        result = Handle(req);
+        try
+        {
+            result = Handle(req);
+            cache.Insert(url, result);
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e.Message);
+            cache.Abort(url);
+        }
 
-        cache.Insert(url, result);
-        return result;
+        return result ?? new JObject{{ "status", "Server nije trenutno dostupan" }};
     }
 
     public void SaveCache()

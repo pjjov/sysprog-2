@@ -38,8 +38,23 @@ class ApiTester
             "/?author=tolkien",
             "/?author=kafka",
             "/?author=dostoevsky",
+            "/?author=hemingway",
+            "/?author=orwell",
+            "/?author=austen",
+            "/?author=shakespeare",
+            "/?author=camus",
+            "/?author=joyce",
+            "/?author=faulkner",
             "/?subject=war",
             "/?subject=fantasy",
+            "/?subject=philosophy",
+            "/?subject=romance",
+            "/?subject=history",
+            "/?subject=science",
+            "/?subject=drama",
+            "/?subject=adventure",
+            "/?subject=psychology",
+            "/?subject=mystery",
         ];
 
         Console.WriteLine($"Testiranje {iterations} iteracija...");
