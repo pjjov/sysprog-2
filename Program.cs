@@ -15,29 +15,19 @@ ApiService service = new ApiService(apiKey, cacheSize);
 
 Server server = new Server("http://localhost:8080/");
 
-Thread thread = new Thread(() => {
-    try {
-        while (server.listener.IsListening) {
-            var context = server.Accept();
-            server.Execute(context, service);
-        }
+Console.CancelKeyPress += (_, e) =>
+{
+    e.Cancel = true;
+    server.Close();
+    service.SaveCache();
+};
+
+try 
+{
+    while (server.listener.IsListening) {
+        var context = server.Accept();
+        server.Execute(context, service);
     }
-    catch (HttpListenerException) { /* Expected on Stop() */ }
-    catch (ObjectDisposedException) { /* Expected on Close() */ }
-    finally
-    {
-        Console.WriteLine("Server stopiran.");
-    }
-});
-
-thread.Start();
-
-ApiTester tester = new ApiTester("./files/test.csv");
-tester.TestMany(1000);
-tester.Close();
-
-Console.ReadLine();
-
-server.Close();
-
-service.SaveCache();
+}
+catch (HttpListenerException) { /* Expected on Stop() */ }
+catch (ObjectDisposedException) { /* Expected on Close() */ }
