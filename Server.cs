@@ -19,32 +19,32 @@ class Server {
         return listener.GetContext();
     }
 
-    private void Handle(HttpListenerContext context, ApiService service)
+    private string Handle(HttpListenerContext context, ApiService service)
     {
         if (context.Request.HttpMethod == "GET")
         {
-            Send(context, service.Query(context.Request));
-        }
-        else
-        {
             context.Response.StatusCode = 402;
-            Send(context, "Samo GET metoda je podrzana!");
+            return "Samo GET metoda je podrzana!";
         }
+
+        return service.Query(context.Request).ToString();
     }
 
     public void Execute(HttpListenerContext context, ApiService service) {
+        Task.Run(() => {
+            string? result = null;
 
-        ThreadPool.QueueUserWorkItem(state => {
             try {
-                Handle(context, service);
+                result = Handle(context, service);
             }
             catch (Exception e) {
-                Console.WriteLine($"Greska prilikom rada sa ThreadPool-om: {e.Message}");
+                Console.WriteLine($"Greska prilikom obrade zahteva: {e.Message}");
             }
-            finally {
-                // context.Response.StatusCode = 500;
-                context.Response.Close();
-            }
+
+            return result;
+        }).ContinueWith(task => {
+            Send(context, task.Result ?? "Greska!");
+            context.Response.Close();
         });
     }
 
@@ -57,11 +57,6 @@ class Server {
         System.IO.Stream output = response.OutputStream;
         output.Write(buffer, 0, buffer.Length);
         output.Close();
-    }
-
-    public void Send(HttpListenerContext context, JObject result)
-    {
-        Send(context, result.ToString());
     }
 
     public void Close() {

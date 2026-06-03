@@ -190,4 +190,18 @@ class BookCache
             rwLock.ExitWriteLock();
         }
     }
+
+    public void Flush()
+    {
+        rwLock.EnterWriteLock();
+        try
+        { 
+            count = 0;
+            responses = responses.Where(pair => pair.Value.result == null).ToDictionary();
+        }
+        finally
+        {
+            rwLock.ExitWriteLock();
+        }
+    }
 }

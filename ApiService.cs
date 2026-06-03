@@ -11,11 +11,14 @@ class ApiService {
     private BookCache cache;
     private readonly string apiKey;
     private readonly HttpClient client;
-    public ApiService(string apiKey, int cacheSize)
+    private readonly CancellationTokenSource timer;
+    public ApiService(string apiKey, int cacheSize = 10, int flushPeriod = 60)
     {
         this.apiKey = apiKey;
-        this.client = new HttpClient();
-        this.cache = new BookCache(cacheSize);
+        client = new HttpClient();
+        cache = new BookCache(cacheSize);
+        timer = new CancellationTokenSource();
+        Task.Run(async () => await this.FlushCacheLoop(timer.Token, flushPeriod));
     }
 
     public JObject Fetch(string url)
@@ -70,7 +73,28 @@ class ApiService {
         return result ?? new JObject{{ "status", "Server nije trenutno dostupan" }};
     }
 
-    public void SaveCache()
+    private async Task FlushCacheLoop(CancellationToken token, int flushPeriod)
+    {
+        PeriodicTimer timer = new (TimeSpan.FromSeconds(flushPeriod));
+
+        try
+        {
+            while (await timer.WaitForNextTickAsync(token))
+            {
+                cache.Flush();
+            }
+        }
+        catch (OperationCanceledException)
+        {
+            Console.WriteLine("Periodicno brisanje kesa!.");
+        }
+        finally
+        {
+            timer.Dispose();
+        }
+    }
+
+    private void SaveCache()
     {
         var stats = cache.Statistics();
         var percentage = (float)stats.hits / (float)(stats.hits + stats.misses) * 100.0;
@@ -80,5 +104,11 @@ class ApiService {
         string folderPath = Path.Combine(projectRoot, "files");
         Directory.CreateDirectory(folderPath);
         FileUtil.WriteResults(folderPath, cache.Snapshot());
+    }
+
+    public void Close()
+    {
+        SaveCache();
+        timer.Cancel();
     }
 }
