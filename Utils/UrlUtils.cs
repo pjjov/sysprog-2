@@ -35,9 +35,13 @@ public class UrlUtils {
         return result;
     }
 
-    public static string BuildQuery(HttpListenerRequest request)
+    public static string TransformUrl(HttpListenerRequest request)
     {
         var query = request.QueryString;
+
+        if (query.Count == 0)
+            return "/volumes?q=";
+
         var sb = new StringBuilder("/volumes?q=");
 
         AppendFilter(ref sb, null, query.Get("search"));

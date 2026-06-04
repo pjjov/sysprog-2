@@ -6,9 +6,17 @@ namespace SysProg.Utils;
 
 public class FileUtil
 {
-
-    public static void WriteResults(string basePath, List<KeyValuePair<string, JObject>> snapshot)
+    public static string GetOutputDirectory()
     {
+        string projectRoot = Path.GetFullPath(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "..", "..", ".."));
+        string folderPath = Path.Combine(projectRoot, "files");
+        Directory.CreateDirectory(folderPath);
+        return folderPath;
+    }
+
+    public static void WriteResults(List<KeyValuePair<string, JObject>> snapshot)
+    {
+        string basePath = GetOutputDirectory();
         int i = 0;
 
         foreach(var pair in snapshot)

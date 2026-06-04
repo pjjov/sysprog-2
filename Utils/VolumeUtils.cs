@@ -8,32 +8,38 @@ namespace SysProg.Utils;
 
 public class VolumeUtils
 {
-    public static JArray ParseVolume(JObject data)
+    private static JObject? ParseVolumeInfo(JToken volume)
+    {
+        var volumeInfo = volume["volumeInfo"];
+        if(volumeInfo == null)
+            return null;
+
+        return new JObject
+        {
+            ["title"] = volumeInfo["title"]?.ToString() ?? "",
+            ["authors"] = volumeInfo["authors"] ?? new JArray(),
+            ["description"] = volumeInfo["description"]?.ToString() ?? "",
+        };
+    }
+
+    public static JObject ParseVolume(string response)
     {
         var res = new JArray();
-        var items = data["items"] as JArray;
+        var items = JObject.Parse(response)["items"] as JArray;
+
         if(items == null)
             throw new Exception("Greska pri obradi rezultata!");
 
         foreach(var item in items)
         {
-            var volumeInfo = item["volumeInfo"];
-            if(volumeInfo == null)
-                continue;
-
-            var filteredBook = new JObject
-            {
-                ["title"] = volumeInfo["title"]?.ToString() ?? "",
-                ["authors"] = volumeInfo["authors"] ?? new JArray(),
-                ["description"] = volumeInfo["description"]?.ToString() ?? "",   
-            };
-
-            res.Add(filteredBook);
+            var book = ParseVolumeInfo(item);
+            if (book != null)
+                res.Add(book);
         }
 
         if (res.Count == 0)
             throw new Exception("Nije pronadjena nijedna knjiga sa datim filterima!");
         
-        return res;
+        return new JObject { ["books"] = res };
     }
 }

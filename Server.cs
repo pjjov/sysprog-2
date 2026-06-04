@@ -1,5 +1,6 @@
 using System.Net;
 using Newtonsoft.Json.Linq;
+using SysProg.Utils;
 
 namespace SysProg;
 
@@ -31,7 +32,8 @@ class Server {
                 }
                 else
                 {
-                    var body = await service.Query(context.Request);
+                    var url = UrlUtils.TransformUrl(context.Request);
+                    var body = await service.Query(url);
                     result = body?.ToString();
                 }
             }

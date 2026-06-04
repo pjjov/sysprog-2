@@ -26,27 +26,17 @@ class ApiService {
         HttpResponseMessage response = await client.GetAsync(UrlUtils.BuildUrl(baseUrl, url, apiKey));
         response.EnsureSuccessStatusCode();
         string responseBody = await response.Content.ReadAsStringAsync();
-        return JObject.Parse(responseBody);
+        return VolumeUtils.ParseVolume(responseBody);
     }
 
-    private async Task<JObject> Handle(HttpListenerRequest req) {
-        if (req.QueryString.Count == 0)
-            return await Fetch("/volumes");
-
-        var result = await Fetch(UrlUtils.BuildQuery(req));
-        var books = VolumeUtils.ParseVolume(result);
-        return new JObject { ["books"] = books };
-    }
-
-    public async Task<JObject?> Query(HttpListenerRequest req) {
-        string url = UrlUtils.NormalizeUrl(req);
+    public async Task<JObject?> Query(string url) {
         JObject? result = cache.Find(url);
         if (result != null)
             return result;
 
         try
         {
-            result = await Handle(req);
+            result = await Fetch(url);
             cache.Insert(url, result);
         }
         catch (Exception e)
@@ -79,20 +69,21 @@ class ApiService {
         }
     }
 
-    private void SaveCache()
+    public void PrintStatistics()
     {
         var stats = cache.Statistics();
         var percentage = (float)stats.hits / (float)(stats.hits + stats.misses) * 100.0;
         Console.WriteLine($"Cache hits/misses (%missed): {stats.hits}/{stats.misses} ({percentage}%)");
+    }
 
-        string projectRoot = Path.GetFullPath(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "..", "..", ".."));
-        string folderPath = Path.Combine(projectRoot, "files");
-        Directory.CreateDirectory(folderPath);
-        FileUtil.WriteResults(folderPath, cache.Snapshot());
+    private void SaveCache()
+    {
+        FileUtil.WriteResults(cache.Snapshot());
     }
 
     public void Close()
     {
+        PrintStatistics();
         SaveCache();
         timer.Cancel();
     }
