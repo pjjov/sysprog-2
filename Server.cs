@@ -19,23 +19,21 @@ class Server {
         return listener.GetContext();
     }
 
-    private string Handle(HttpListenerContext context, ApiService service)
-    {
-        if (context.Request.HttpMethod == "GET")
-        {
-            context.Response.StatusCode = 402;
-            return "Samo GET metoda je podrzana!";
-        }
-
-        return service.Query(context.Request).ToString();
-    }
-
     public void Execute(HttpListenerContext context, ApiService service) {
-        Task.Run(() => {
+        Task.Run(async () => {
             string? result = null;
 
             try {
-                result = Handle(context, service);
+                if (context.Request.HttpMethod != "GET")
+                {
+                    context.Response.StatusCode = 402;
+                    result = "Samo GET metoda je podrzana!";
+                }
+                else
+                {
+                    var body = await service.Query(context.Request);
+                    result = body?.ToString();
+                }
             }
             catch (Exception e) {
                 Console.WriteLine($"Greska prilikom obrade zahteva: {e.Message}");

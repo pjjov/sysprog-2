@@ -13,9 +13,7 @@ public class VolumeUtils
         var res = new JArray();
         var items = data["items"] as JArray;
         if(items == null)
-        {
-            return res;
-        }
+            throw new Exception("Greska pri obradi rezultata!");
 
         foreach(var item in items)
         {
@@ -32,6 +30,9 @@ public class VolumeUtils
 
             res.Add(filteredBook);
         }
+
+        if (res.Count == 0)
+            throw new Exception("Nije pronadjena nijedna knjiga sa datim filterima!");
         
         return res;
     }

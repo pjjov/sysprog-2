@@ -21,39 +21,24 @@ class ApiService {
         Task.Run(async () => await this.FlushCacheLoop(timer.Token, flushPeriod));
     }
 
-    public JObject Fetch(string url)
+    private async Task<JObject> Fetch(string url)
     {   
-        HttpResponseMessage response = client.GetAsync(UrlUtils.BuildUrl(baseUrl, url, apiKey)).Result;
+        HttpResponseMessage response = await client.GetAsync(UrlUtils.BuildUrl(baseUrl, url, apiKey));
         response.EnsureSuccessStatusCode();
-        string responseBody = response.Content.ReadAsStringAsync().Result;
+        string responseBody = await response.Content.ReadAsStringAsync();
         return JObject.Parse(responseBody);
     }
 
-    private JObject Handle(HttpListenerRequest req) {
-        var query = req.QueryString;
+    private async Task<JObject> Handle(HttpListenerRequest req) {
+        if (req.QueryString.Count == 0)
+            return await Fetch("/volumes");
 
-        if (query.Count == 0)
-            return Fetch("/volumes");
-
-        var sb = new StringBuilder("/volumes?q=");
-
-        UrlUtils.AppendFilter(ref sb, null, query.Get("search"));
-        UrlUtils.AppendFilter(ref sb, "inauthor", query.Get("author"));
-        UrlUtils.AppendFilter(ref sb, "inpublisher", query.Get("publisher"));
-        UrlUtils.AppendFilter(ref sb, "subject", query.Get("subject"));
-
-        var result = Fetch(sb.ToString());
-        JArray books = VolumeUtils.ParseVolume(result);
-        
-        if (books.Count == 0)
-            throw new Exception("Nije pronadjena nijedna knjiga sa datim filterima!");
-
-        return new JObject {
-            ["books"] = books,
-        };
+        var result = await Fetch(UrlUtils.BuildQuery(req));
+        var books = VolumeUtils.ParseVolume(result);
+        return new JObject { ["books"] = books };
     }
 
-    public JObject Query(HttpListenerRequest req) {
+    public async Task<JObject?> Query(HttpListenerRequest req) {
         string url = UrlUtils.NormalizeUrl(req);
         JObject? result = cache.Find(url);
         if (result != null)
@@ -61,7 +46,7 @@ class ApiService {
 
         try
         {
-            result = Handle(req);
+            result = await Handle(req);
             cache.Insert(url, result);
         }
         catch (Exception e)
@@ -70,7 +55,7 @@ class ApiService {
             cache.Abort(url);
         }
 
-        return result ?? new JObject{{ "status", "Server nije trenutno dostupan" }};
+        return result;
     }
 
     private async Task FlushCacheLoop(CancellationToken token, int flushPeriod)

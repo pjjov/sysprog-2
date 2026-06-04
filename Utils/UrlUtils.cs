@@ -34,6 +34,20 @@ public class UrlUtils {
         string result = uri.Query.TrimStart('?').Replace("&", "\n\t").Replace("=", ": ");
         return result;
     }
+
+    public static string BuildQuery(HttpListenerRequest request)
+    {
+        var query = request.QueryString;
+        var sb = new StringBuilder("/volumes?q=");
+
+        AppendFilter(ref sb, null, query.Get("search"));
+        AppendFilter(ref sb, "inauthor", query.Get("author"));
+        AppendFilter(ref sb, "inpublisher", query.Get("publisher"));
+        AppendFilter(ref sb, "subject", query.Get("subject"));
+
+        return sb.ToString();
+    }
+
     public static string NormalizeUrl(HttpListenerRequest request)
     {
         var query = request.QueryString;
